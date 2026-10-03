@@ -11,11 +11,11 @@ export default function Home() {
     if (!url) return;
     
     setIsScanning(true);
-    setShowResults(false); // Ocultamos resultados previos si escanea de nuevo
+    setShowResults(false); 
 
     setTimeout(() => {
       setIsScanning(false);
-      setShowResults(true); // Mostramos el panel en lugar de la alerta
+      setShowResults(true); 
     }, 3000);
   };
 
@@ -63,8 +63,8 @@ export default function Home() {
               <p className="text-blue-400 mt-1">{url}</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Métrica 1: Puntuación SEO */}
+            {/* Tarjetas Superiores */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Puntuación SEO</span>
                 <div className="flex items-baseline gap-1">
@@ -73,21 +73,48 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Métrica 2: Velocidad */}
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Velocidad de Carga</span>
+                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Velocidad</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-black text-yellow-400">1.2</span>
                   <span className="text-xl text-gray-500">s</span>
                 </div>
               </div>
 
-              {/* Métrica 3: Estado General */}
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Estado General</span>
                 <span className="text-2xl font-bold text-blue-400 mt-2">Óptimo</span>
               </div>
             </div>
+
+            {/* Checklist de Análisis Detallado */}
+            <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left">
+              <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
+              <ul className="space-y-3">
+                <li className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                    <span className="text-green-400 text-xl">✓</span>
+                    <span className="text-gray-200 font-medium">Etiqueta Title</span>
+                  </div>
+                  <span className="text-gray-400 text-sm text-left sm:text-right">Correcta (55 caracteres)</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-800 rounded-lg border border-red-900/50">
+                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                    <span className="text-red-400 text-xl">✗</span>
+                    <span className="text-gray-200 font-medium">Meta Descripción</span>
+                  </div>
+                  <span className="text-red-400/80 text-sm text-left sm:text-right">Falta la etiqueta</span>
+                </li>
+                <li className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                    <span className="text-green-400 text-xl">✓</span>
+                    <span className="text-gray-200 font-medium">Encabezado H1</span>
+                  </div>
+                  <span className="text-gray-400 text-sm text-left sm:text-right">1 encontrado</span>
+                </li>
+              </ul>
+            </div>
+
           </div>
         )}
 
