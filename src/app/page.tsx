@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-// Importamos los motores que acabas de instalar
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -35,37 +32,39 @@ export default function Home() {
     }
   };
 
-  // Función estrella: Convierte los resultados en un documento PDF
   const exportPDF = async () => {
     const element = document.getElementById('report-content');
     if (!element) return;
 
-    try {
-      const btn = document.getElementById('pdf-btn');
-      if(btn) btn.innerText = "Generando documento...";
+    const btn = document.getElementById('pdf-btn');
+    if(btn) btn.innerText = "Generando documento...";
 
-      // Hace una "foto" de alta calidad a los resultados
+    try {
+      // Importación dinámica: solo llamamos a los motores cuando se hace clic
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
       const canvas = await html2canvas(element, { 
         scale: 2,
-        backgroundColor: '#1f2937' // Fondo gris oscuro para que quede elegante
+        backgroundColor: '#1f2937' 
       });
       const imgData = canvas.toDataURL('image/png');
       
-      // Monta el PDF y pega la foto
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       
-      // Limpia la URL para el nombre del archivo y lo descarga
       const cleanUrl = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
       pdf.save(`Auditoria-SEO-${cleanUrl}.pdf`);
 
-      if(btn) btn.innerText = "Descargar Informe PDF (Función Pro)";
     } catch (error) {
       console.error(error);
       alert("Error al generar el PDF.");
+    } finally {
+      // Usamos finally para que el botón siempre vuelva a la normalidad
+      if(btn) btn.innerText = "Descargar Informe PDF (Función Pro)";
     }
   };
 
@@ -117,7 +116,6 @@ export default function Home() {
         {showResults && scanData && (
           <div className="w-full mt-12 animate-fade-in flex flex-col items-center">
             
-            {/* Contenedor ID report-content: Todo lo que esté aquí dentro saldrá en el PDF */}
             <div id="report-content" className="w-full bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl">
               <div className="mb-8 border-b border-gray-700 pb-4 flex justify-between items-center">
                 <div>
@@ -200,7 +198,6 @@ export default function Home() {
               </div>
             </div>
             
-            {/* Botón de Venta (Donde luego engancharemos Stripe) */}
             <div className="mt-8 w-full max-w-2xl">
               <div className="p-6 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-800 rounded-xl flex flex-col items-center text-center gap-4 shadow-lg shadow-blue-900/20">
                 <div>
