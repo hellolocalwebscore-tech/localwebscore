@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
+// Importamos los motores que acabas de instalar
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [scanData, setScanData] = useState<any>(null);
-  
-  // Nuevos estados para el embudo de ventas
-  const [leadEmail, setLeadEmail] = useState("");
-  const [isUnlocked, setIsUnlocked] = useState(false);
 
   const handleScan = async () => {
     if (!url) return;
@@ -18,7 +17,6 @@ export default function Home() {
     setIsScanning(true);
     setShowResults(false); 
     setScanData(null);
-    setIsUnlocked(false); // Bloqueamos el informe por defecto en cada nuevo escaneo
 
     try {
       const res = await fetch('/api/scan', {
@@ -37,12 +35,37 @@ export default function Home() {
     }
   };
 
-  const handleUnlock = () => {
-    if (leadEmail.includes("@")) {
-      // Aquí en el futuro enviaremos el email a tu base de datos
-      setIsUnlocked(true);
-    } else {
-      alert("Por favor, introduce un email válido.");
+  // Función estrella: Convierte los resultados en un documento PDF
+  const exportPDF = async () => {
+    const element = document.getElementById('report-content');
+    if (!element) return;
+
+    try {
+      const btn = document.getElementById('pdf-btn');
+      if(btn) btn.innerText = "Generando documento...";
+
+      // Hace una "foto" de alta calidad a los resultados
+      const canvas = await html2canvas(element, { 
+        scale: 2,
+        backgroundColor: '#1f2937' // Fondo gris oscuro para que quede elegante
+      });
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Monta el PDF y pega la foto
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      // Limpia la URL para el nombre del archivo y lo descarga
+      const cleanUrl = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      pdf.save(`Auditoria-SEO-${cleanUrl}.pdf`);
+
+      if(btn) btn.innerText = "Descargar Informe PDF (Función Pro)";
+    } catch (error) {
+      console.error(error);
+      alert("Error al generar el PDF.");
     }
   };
 
@@ -66,7 +89,7 @@ export default function Home() {
         </h1>
         
         <p className="text-lg md:text-xl text-gray-400 text-center max-w-2xl">
-          Analiza, optimiza y domina el SEO local de cualquier negocio en segundos.
+          Auditorías SEO en segundos. La herramienta definitiva para agencias y freelancers.
         </p>
 
         <div className="w-full max-w-2xl flex flex-col sm:flex-row gap-4 mt-8">
@@ -92,81 +115,50 @@ export default function Home() {
         </div>
 
         {showResults && scanData && (
-          <div className="w-full mt-12 bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl animate-fade-in">
-            <div className="mb-8 border-b border-gray-700 pb-4">
-              <h2 className="text-2xl font-bold text-white">Resultados del análisis</h2>
-              <p className="text-blue-400 mt-1">{url}</p>
-            </div>
+          <div className="w-full mt-12 animate-fade-in flex flex-col items-center">
             
-            {/* Tarjetas de Puntuación (Siempre visibles) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Puntuación SEO</span>
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-5xl font-black ${score > 70 ? 'text-green-400' : score > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {score}
-                  </span>
-                  <span className="text-xl text-gray-500">/100</span>
+            {/* Contenedor ID report-content: Todo lo que esté aquí dentro saldrá en el PDF */}
+            <div id="report-content" className="w-full bg-gray-800 rounded-2xl p-8 border border-gray-700 shadow-2xl">
+              <div className="mb-8 border-b border-gray-700 pb-4 flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Auditoría SEO Local</h2>
+                  <p className="text-blue-400 mt-1">{url}</p>
+                </div>
+                <div className="text-right hidden sm:block">
+                  <span className="text-gray-500 text-sm italic">Generado por LocalWebScore</span>
                 </div>
               </div>
               
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Tiempo de Respuesta</span>
-                <div className="flex items-baseline gap-1">
-                  <span className={`text-5xl font-black ${Number(scanData.loadTime) < 1.0 ? 'text-green-400' : Number(scanData.loadTime) < 2.5 ? 'text-yellow-400' : 'text-red-400'}`}>
-                    {scanData.loadTime || "0.00"}
-                  </span>
-                  <span className="text-xl text-gray-500">s</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center">
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Puntuación SEO</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-5xl font-black ${score > 70 ? 'text-green-400' : score > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                      {score}
+                    </span>
+                    <span className="text-xl text-gray-500">/100</span>
+                  </div>
                 </div>
-              </div>
-
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Estado General</span>
-                <span className={`text-2xl font-bold mt-2 ${score > 70 ? 'text-green-400' : score > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
-                  {score > 70 ? 'Óptimo' : score > 40 ? 'Mejorable' : 'Crítico'}
-                </span>
-              </div>
-            </div>
-
-            {/* Sección de Captación de Leads / Desglose */}
-            {!isUnlocked ? (
-              <div className="bg-gray-900 rounded-xl border border-gray-700 relative overflow-hidden">
-                {/* Capa de desenfoque y formulario */}
-                <div className="absolute inset-0 z-10 bg-gray-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
-                  <span className="text-4xl mb-3">🔒</span>
-                  <h3 className="text-xl font-bold text-white mb-2">Descubre qué está fallando en tu web</h3>
-                  <p className="text-gray-300 mb-6 max-w-md text-sm">
-                    Ingresa tu correo electrónico para desbloquear el informe técnico detallado y ver los errores exactos.
-                  </p>
-                  <div className="flex flex-col sm:flex-row w-full max-w-md gap-3">
-                    <input
-                      type="email"
-                      value={leadEmail}
-                      onChange={(e) => setLeadEmail(e.target.value)}
-                      placeholder="tu@email.com"
-                      className="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 focus:outline-none focus:border-blue-500 text-white"
-                    />
-                    <button 
-                      onClick={handleUnlock}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
-                    >
-                      Ver errores
-                    </button>
+                
+                <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center">
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Tiempo Respuesta</span>
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-5xl font-black ${Number(scanData.loadTime) < 1.0 ? 'text-green-400' : Number(scanData.loadTime) < 2.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                      {scanData.loadTime || "0.00"}
+                    </span>
+                    <span className="text-xl text-gray-500">s</span>
                   </div>
                 </div>
 
-                {/* Fondo falso difuminado */}
-                <div className="p-6 opacity-30 blur-[4px] pointer-events-none">
-                  <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
-                  <ul className="space-y-3">
-                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
-                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
-                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
-                  </ul>
+                <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center">
+                  <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Estado General</span>
+                  <span className={`text-2xl font-bold mt-2 ${score > 70 ? 'text-green-400' : score > 40 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {score > 70 ? 'Óptimo' : score > 40 ? 'Mejorable' : 'Crítico'}
+                  </span>
                 </div>
               </div>
-            ) : (
-              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left animate-fade-in">
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left">
                 <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
                 <ul className="space-y-3">
                   <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.title ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
@@ -205,19 +197,30 @@ export default function Home() {
                     </span>
                   </li>
                 </ul>
-                
-                {/* Llamada a la acción final para la agencia */}
-                <div className="mt-8 p-6 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <div>
-                    <h4 className="text-lg font-bold text-white">¿Necesitas mejorar tu puntuación?</h4>
-                    <p className="text-gray-300 text-sm mt-1">Nuestros expertos en diseño web y SEO local pueden llevar tu web al 100/100.</p>
-                  </div>
-                  <a href="https://farwebstudio.es/" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors whitespace-nowrap">
-                    Contactar Agencia
-                  </a>
-                </div>
               </div>
-            )}
+            </div>
+            
+            {/* Botón de Venta (Donde luego engancharemos Stripe) */}
+            <div className="mt-8 w-full max-w-2xl">
+              <div className="p-6 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-800 rounded-xl flex flex-col items-center text-center gap-4 shadow-lg shadow-blue-900/20">
+                <div>
+                  <h4 className="text-xl font-bold text-white flex items-center justify-center gap-2">
+                    <span className="text-yellow-400">⚡</span> Pásate a LocalWebScore PRO
+                  </h4>
+                  <p className="text-gray-300 text-sm mt-2">
+                    Descarga esta auditoría en un PDF profesional para enviárselo a tus clientes y cerrar más ventas.
+                  </p>
+                </div>
+                <button 
+                  id="pdf-btn"
+                  onClick={exportPDF}
+                  className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-lg transition-colors shadow-lg w-full sm:w-auto"
+                >
+                  Descargar Informe PDF (Función Pro)
+                </button>
+              </div>
+            </div>
+
           </div>
         )}
       </div>
