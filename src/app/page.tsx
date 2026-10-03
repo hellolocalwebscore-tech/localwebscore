@@ -7,6 +7,10 @@ export default function Home() {
   const [isScanning, setIsScanning] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [scanData, setScanData] = useState<any>(null);
+  
+  // Nuevos estados para el embudo de ventas
+  const [leadEmail, setLeadEmail] = useState("");
+  const [isUnlocked, setIsUnlocked] = useState(false);
 
   const handleScan = async () => {
     if (!url) return;
@@ -14,6 +18,7 @@ export default function Home() {
     setIsScanning(true);
     setShowResults(false); 
     setScanData(null);
+    setIsUnlocked(false); // Bloqueamos el informe por defecto en cada nuevo escaneo
 
     try {
       const res = await fetch('/api/scan', {
@@ -29,6 +34,15 @@ export default function Home() {
       alert("Hubo un problema al analizar la web.");
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleUnlock = () => {
+    if (leadEmail.includes("@")) {
+      // Aquí en el futuro enviaremos el email a tu base de datos
+      setIsUnlocked(true);
+    } else {
+      alert("Por favor, introduce un email válido.");
     }
   };
 
@@ -84,6 +98,7 @@ export default function Home() {
               <p className="text-blue-400 mt-1">{url}</p>
             </div>
             
+            {/* Tarjetas de Puntuación (Siempre visibles) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Puntuación SEO</span>
@@ -95,7 +110,6 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Tarjeta de Velocidad Actualizada */}
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
                 <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Tiempo de Respuesta</span>
                 <div className="flex items-baseline gap-1">
@@ -114,46 +128,96 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left">
-              <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
-              <ul className="space-y-3">
-                <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.title ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
-                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
-                    <span className={scanData.title ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
-                      {scanData.title ? "✓" : "✗"}
-                    </span>
-                    <span className="text-gray-200 font-medium">Etiqueta Title</span>
+            {/* Sección de Captación de Leads / Desglose */}
+            {!isUnlocked ? (
+              <div className="bg-gray-900 rounded-xl border border-gray-700 relative overflow-hidden">
+                {/* Capa de desenfoque y formulario */}
+                <div className="absolute inset-0 z-10 bg-gray-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+                  <span className="text-4xl mb-3">🔒</span>
+                  <h3 className="text-xl font-bold text-white mb-2">Descubre qué está fallando en tu web</h3>
+                  <p className="text-gray-300 mb-6 max-w-md text-sm">
+                    Ingresa tu correo electrónico para desbloquear el informe técnico detallado y ver los errores exactos.
+                  </p>
+                  <div className="flex flex-col sm:flex-row w-full max-w-md gap-3">
+                    <input
+                      type="email"
+                      value={leadEmail}
+                      onChange={(e) => setLeadEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      className="flex-1 px-4 py-3 rounded-lg bg-gray-800 border border-gray-600 focus:outline-none focus:border-blue-500 text-white"
+                    />
+                    <button 
+                      onClick={handleUnlock}
+                      className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors"
+                    >
+                      Ver errores
+                    </button>
                   </div>
-                  <span className={scanData.title ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
-                    {scanData.title ? `Encontrada (${scanData.title.length} caract.)` : "Falta la etiqueta"}
-                  </span>
-                </li>
+                </div>
 
-                <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.description ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
-                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
-                    <span className={scanData.description ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
-                      {scanData.description ? "✓" : "✗"}
+                {/* Fondo falso difuminado */}
+                <div className="p-6 opacity-30 blur-[4px] pointer-events-none">
+                  <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
+                  <ul className="space-y-3">
+                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
+                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
+                    <li className="p-4 rounded-lg border bg-gray-800 border-gray-700 h-16"></li>
+                  </ul>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left animate-fade-in">
+                <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
+                <ul className="space-y-3">
+                  <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.title ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
+                    <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                      <span className={scanData.title ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
+                        {scanData.title ? "✓" : "✗"}
+                      </span>
+                      <span className="text-gray-200 font-medium">Etiqueta Title</span>
+                    </div>
+                    <span className={scanData.title ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
+                      {scanData.title ? `Encontrada (${scanData.title.length} caract.)` : "Falta la etiqueta"}
                     </span>
-                    <span className="text-gray-200 font-medium">Meta Descripción</span>
-                  </div>
-                  <span className={scanData.description ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
-                    {scanData.description ? `Encontrada (${scanData.description.length} caract.)` : "Falta la etiqueta"}
-                  </span>
-                </li>
+                  </li>
 
-                <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.h1 ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
-                  <div className="flex items-center gap-3 mb-2 sm:mb-0">
-                    <span className={scanData.h1 ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
-                      {scanData.h1 ? "✓" : "✗"}
+                  <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.description ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
+                    <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                      <span className={scanData.description ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
+                        {scanData.description ? "✓" : "✗"}
+                      </span>
+                      <span className="text-gray-200 font-medium">Meta Descripción</span>
+                    </div>
+                    <span className={scanData.description ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
+                      {scanData.description ? `Encontrada (${scanData.description.length} caract.)` : "Falta la etiqueta"}
                     </span>
-                    <span className="text-gray-200 font-medium">Encabezado H1</span>
+                  </li>
+
+                  <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.h1 ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
+                    <div className="flex items-center gap-3 mb-2 sm:mb-0">
+                      <span className={scanData.h1 ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
+                        {scanData.h1 ? "✓" : "✗"}
+                      </span>
+                      <span className="text-gray-200 font-medium">Encabezado H1</span>
+                    </div>
+                    <span className={scanData.h1 ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
+                      {scanData.h1 ? `Encontrado (${scanData.h1.length} caract.)` : "Falta la etiqueta"}
+                    </span>
+                  </li>
+                </ul>
+                
+                {/* Llamada a la acción final para la agencia */}
+                <div className="mt-8 p-6 bg-gradient-to-r from-blue-900/40 to-cyan-900/40 border border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-lg font-bold text-white">¿Necesitas mejorar tu puntuación?</h4>
+                    <p className="text-gray-300 text-sm mt-1">Nuestros expertos en diseño web y SEO local pueden llevar tu web al 100/100.</p>
                   </div>
-                  <span className={scanData.h1 ? "text-gray-400 text-sm" : "text-red-400/80 text-sm"}>
-                    {scanData.h1 ? `Encontrado (${scanData.h1.length} caract.)` : "Falta la etiqueta"}
-                  </span>
-                </li>
-              </ul>
-            </div>
+                  <a href="https://farwebstudio.es/" target="_blank" rel="noopener noreferrer" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors whitespace-nowrap">
+                    Contactar Agencia
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
