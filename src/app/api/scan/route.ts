@@ -13,6 +13,9 @@ export async function POST(request: Request) {
       finalUrl = 'https://' + finalUrl;
     }
 
+    // Iniciamos el cronómetro
+    const startTime = Date.now();
+
     const response = await fetch(finalUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -24,8 +27,11 @@ export async function POST(request: Request) {
     }
 
     const html = await response.text();
+    
+    // Paramos el cronómetro y calculamos los segundos
+    const endTime = Date.now();
+    const loadTimeInSeconds = ((endTime - startTime) / 1000).toFixed(2);
 
-    // Utilizamos [\s\S]*? para capturar todo el contenido, incluso si hay saltos de línea
     const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
     const title = titleMatch ? titleMatch[1].trim() : null;
 
@@ -34,13 +40,13 @@ export async function POST(request: Request) {
     const description = descriptionMatch ? descriptionMatch[1].trim() : null;
 
     const h1Match = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
-    // Limpiamos cualquier etiqueta HTML anidada (como <span> o <strong>) para sacar solo el texto limpio
     const h1 = h1Match ? h1Match[1].replace(/<[^>]+>/g, '').trim() : null;
 
     return NextResponse.json({
       title: title ? { text: title, length: title.length } : null,
       description: description ? { text: description, length: description.length } : null,
       h1: h1 ? { text: h1, length: h1.length } : null,
+      loadTime: loadTimeInSeconds, // Enviamos el tiempo al frontal
     });
 
   } catch (error) {

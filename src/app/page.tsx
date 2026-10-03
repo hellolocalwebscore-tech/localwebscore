@@ -16,7 +16,6 @@ export default function Home() {
     setScanData(null);
 
     try {
-      // Llamamos a nuestra nueva API real
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +32,6 @@ export default function Home() {
     }
   };
 
-  // Calculamos una puntuación real basada en los datos
   const calculateScore = () => {
     if (!scanData) return 0;
     let score = 0;
@@ -97,12 +95,15 @@ export default function Home() {
                 </div>
               </div>
               
+              {/* Tarjeta de Velocidad Actualizada */}
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
-                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Velocidad</span>
+                <span className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Tiempo de Respuesta</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-gray-500">-</span>
+                  <span className={`text-5xl font-black ${Number(scanData.loadTime) < 1.0 ? 'text-green-400' : Number(scanData.loadTime) < 2.5 ? 'text-yellow-400' : 'text-red-400'}`}>
+                    {scanData.loadTime || "0.00"}
+                  </span>
+                  <span className="text-xl text-gray-500">s</span>
                 </div>
-                <span className="text-xs text-gray-600 mt-1">Próximamente</span>
               </div>
 
               <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 flex flex-col items-center justify-center transition-transform hover:scale-105">
@@ -116,7 +117,6 @@ export default function Home() {
             <div className="bg-gray-900 rounded-xl p-6 border border-gray-700 text-left">
               <h3 className="text-xl font-bold text-white mb-4">Desglose Técnico</h3>
               <ul className="space-y-3">
-                {/* Etiqueta Title */}
                 <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.title ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
                   <div className="flex items-center gap-3 mb-2 sm:mb-0">
                     <span className={scanData.title ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
@@ -129,7 +129,6 @@ export default function Home() {
                   </span>
                 </li>
 
-                {/* Meta Descripción */}
                 <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.description ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
                   <div className="flex items-center gap-3 mb-2 sm:mb-0">
                     <span className={scanData.description ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
@@ -142,7 +141,6 @@ export default function Home() {
                   </span>
                 </li>
 
-                {/* Encabezado H1 */}
                 <li className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border ${scanData.h1 ? 'bg-gray-800 border-gray-700' : 'bg-red-900/20 border-red-900/50'}`}>
                   <div className="flex items-center gap-3 mb-2 sm:mb-0">
                     <span className={scanData.h1 ? "text-green-400 text-xl" : "text-red-400 text-xl"}>
