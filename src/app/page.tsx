@@ -40,8 +40,8 @@ export default function Home() {
     if(btn) btn.innerText = "Generando documento...";
 
     try {
-      // Importación dinámica: solo llamamos a los motores cuando se hace clic
-      const html2canvas = (await import('html2canvas')).default;
+      // Importamos la versión PRO que sí soporta colores modernos
+      const html2canvas = (await import('html2canvas-pro')).default;
       const { jsPDF } = await import('jspdf');
 
       const canvas = await html2canvas(element, { 
@@ -63,7 +63,6 @@ export default function Home() {
       console.error(error);
       alert("Error al generar el PDF.");
     } finally {
-      // Usamos finally para que el botón siempre vuelva a la normalidad
       if(btn) btn.innerText = "Descargar Informe PDF (Función Pro)";
     }
   };
